@@ -1,7 +1,10 @@
 import pandas as pd
 
+with open("Resources/captions.jsonl") as file:
+    captions = pd.read_json(file, lines=True)
 
-def get_captions(video_id):
+
+def get_captions_by_video_id(video_id):
     global captions
     captions_edit = captions[captions['file'] == video_id]
     captions_edit = captions_edit[['start_time', 'text', 'end_time']]
@@ -19,7 +22,3 @@ def save(df):
         return "Save successful!"
     except ValueError:
         return "Save failed: Incorrect input format"
-
-
-with open("Resources/captions.jsonl") as file:
-    captions = pd.read_json(file, lines=True)
