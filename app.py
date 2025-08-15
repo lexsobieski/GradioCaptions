@@ -1,58 +1,24 @@
 import gradio as gr
-import pandas as pd
-import re
 import firebase_admin
 from firebase_admin import db
-import hashlib
-import jsonlines
-import json
+from auth_functions import auth_function
+from video_player_functions import youtube_link_to_id, get_youtube_video
+from caption_editor_functions import get_captions, save, captions
+from Resources.css import css
 
-cred_obj = firebase_admin.credentials.Certificate('key.json')
+cred_obj = firebase_admin.credentials.Certificate('Resources/key.json')
 default_app = firebase_admin.initialize_app(cred_obj, {
     'databaseURL': "https://video-link-db-default-rtdb.europe-west1.firebasedatabase.app/"
     })
 videos_ref = db.reference("/Videos")
+users_ref = db.reference("/Users")
 
-with open("captions.jsonl") as file:
-    captions = pd.read_json(file, lines=True)
-
-# videos = ["Aj9SDSAOXf4", "c2ORbHSQ5pw"]
-current_video = 0
 video_links = videos_ref.get()[1:]
-
-css = """
-.container {
-    position: relative;
-    width: 100%;
-    height: 0;
-    padding-bottom: 56.25%;
-}
-.video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}"""
+current_video = 0
 
 
-def auth_function(username, password):
-    return True
-
-
-def youtube_link_to_id(link):
-    video_id = re.findall("=(.*?)&", link)
-    if len(video_id) == 0:
-        video_id = re.findall("=(.*)", link)
-    return video_id[0]
-
-
-def get_captions(video_id):
-    global captions
-    captions_edit = captions[captions['file'] == video_id]
-    captions_edit = captions_edit[['start_time', 'text', 'end_time']]
-    captions_edit.columns = ["Start", "Text", "End"]
-    return captions_edit
+def auth(username, password):
+    return auth_function(username, password, users_ref)
 
 
 def get_next_captions():
@@ -60,13 +26,6 @@ def get_next_captions():
     return get_captions(youtube_link_to_id(video_links[current_video]))
     # global current_video, videos
     # return get_captions(videos[current_video])
-
-
-def get_youtube_video(video_id):
-    return f"""
-    <div class="container">
-    <iframe src="https://www.youtube.com/embed/{video_id}" frameborder="0" allowfullscreen class="video"></iframe>
-    </div>"""
 
 
 def get_next_youtube_video():
@@ -88,18 +47,6 @@ def refresh_components():
     return next_video, next_captions
 
 
-def save(df):
-    try:
-        global captions
-        captions['start_time'] = df['Start'].apply(lambda x: float(x))
-        captions['text'] = df['Text']
-        captions['end_time'] = df['End'].apply(lambda x: float(x))
-        captions.to_json('captions2.jsonl', orient='records', lines=True)
-        return "Save successful!"
-    except ValueError:
-        return "Save failed: Incorrect input format"
-
-
 with gr.Blocks(css=css) as app:
     gr.Markdown("## Caption Editor")
     with gr.Row():
@@ -118,4 +65,4 @@ with gr.Blocks(css=css) as app:
     next_video_button.click(fn=refresh_components, outputs=[video_embed, caption_editor])
     save_button.click(fn=save, inputs=caption_editor, outputs=save_result)
 
-app.launch(auth=auth_function)
+app.launch(auth=auth)

@@ -83,5 +83,7 @@ http-client.private.env.json
 .idea/ApifoxUploaderProjectSetting.xml
 
 # Project specific
-key.json
+Resources/key.json
+Resources/salt.py
 venv
+**/__pycache__
