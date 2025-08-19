@@ -58,7 +58,7 @@ with gr.Blocks(css=css) as app:
                                           datatype=["number", "str", "number"],
                                           row_count=(start_captions.shape[0], "fixed"),
                                           col_count=(3, "fixed"), column_widths=["20%", "60%", "20%"])
-            save_button = gr.Button("Save")
+            save_button = gr.Button(value="Save")
             save_result = gr.Markdown()
         with gr.Column():
             video_embed = gr.HTML(value=start_video)

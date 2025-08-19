@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np
+import json
 
 
 def get_captions_by_video_id(video_id):
@@ -13,22 +13,25 @@ def get_captions_by_video_id(video_id):
 
 
 def save_dataframe(df, video_id, user):
+    cols = ["clean_text", "start_time", "user_id", "signer", "file", "end_time", "url", "text"]
+    other_captions_data = []
+    new_captions_data = []
+    file_name = "Resources/captions.jsonl"
+
+    with open(file_name) as f:
+        for line in f:
+            caption = json.loads(line)
+            if caption['file'] == video_id:
+                new_captions_data.append(caption)
+            else:
+                other_captions_data.append(caption)
+
+    other_captions = pd.DataFrame(data=other_captions_data, columns=cols)
+    new_captions = pd.DataFrame(data=new_captions_data, columns=cols)
     try:
-        with open("Resources/captions.jsonl") as file:
-            captions = pd.read_json(file, lines=True)
-
-        other_captions = captions[captions['file'] != video_id].copy()
-        new_captions = captions[captions['file'] == video_id].copy()
-
-        new_captions['start_time'] = np.where(df['Start'].isnull(),
-                                              new_captions['start_time'],
-                                              df['Start'].apply(lambda x: float(x)))
-        new_captions['text'] = np.where(df['Text'].isnull(),
-                                        new_captions['text'],
-                                        df['Text'])
-        new_captions['end_time'] = np.where(df['End'].isnull(),
-                                            new_captions['end_time'],
-                                            df['End'].apply(lambda x: float(x)))
+        new_captions['start_time'] = df['Start'].apply(lambda x: float(x))
+        new_captions['text'] = df['Text']
+        new_captions['end_time'] = df['End'].apply(lambda x: float(x))
         new_captions['user_id'] = user
 
         all_captions = pd.concat([other_captions, new_captions], ignore_index=True)
