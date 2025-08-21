@@ -1,9 +1,11 @@
 import pandas as pd
 import json
 
+FILE_PATH = "../Resources/captions.jsonl"
+
 
 def get_captions_by_video_id(video_id):
-    with open("Resources/captions.jsonl") as file:
+    with open(FILE_PATH) as file:
         captions = pd.read_json(file, lines=True)
 
     captions_edit = captions[captions['file'] == video_id]
@@ -16,9 +18,8 @@ def save_dataframe(df, video_id, user):
     cols = ["clean_text", "start_time", "user_id", "signer", "file", "end_time", "url", "text"]
     other_captions_data = []
     new_captions_data = []
-    file_name = "Resources/captions.jsonl"
 
-    with open(file_name) as f:
+    with open(FILE_PATH) as f:
         for line in f:
             caption = json.loads(line)
             if caption['file'] == video_id:
@@ -36,7 +37,7 @@ def save_dataframe(df, video_id, user):
 
         all_captions = pd.concat([other_captions, new_captions], ignore_index=True)
 
-        all_captions.to_json('Resources/captions.jsonl', orient='records', lines=True)
+        all_captions.to_json(FILE_PATH, orient='records', lines=True)
         return "Save successful!"
     except ValueError:
         return "Save failed: Incorrect input format"

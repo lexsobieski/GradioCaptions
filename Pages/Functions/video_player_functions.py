@@ -1,4 +1,5 @@
 import re
+from db_connection import videos_ref
 
 
 def youtube_link_to_id(link):
@@ -15,6 +16,6 @@ def get_video_embed_by_id(video_id):
     </div>"""
 
 
-def get_video_link_by_pointer(pointer, db_ref):
-    video_link = db_ref.child(str(pointer)).get()
+def get_video_link_by_pointer(pointer):
+    video_link = videos_ref.child(str(pointer)).get()
     return video_link

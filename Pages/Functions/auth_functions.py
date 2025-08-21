@@ -1,5 +1,6 @@
-from Resources.salt import salt
+from ..Resources.salt import salt
 import hashlib
+from db_connection import users_ref
 
 
 def encrypt(password):
@@ -7,8 +8,8 @@ def encrypt(password):
     return result.hex()
 
 
-def auth_function(username, password, db_ref):
-    user_password = db_ref.child(username).get()
+def auth_function(username, password):
+    user_password = users_ref.child(username).get()
     if user_password is None:
         return False
     pass_input = encrypt(password)
