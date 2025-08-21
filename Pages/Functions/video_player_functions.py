@@ -1,5 +1,5 @@
 import re
-from db_connection import videos_ref
+from .db_connection import videos_ref
 
 
 def youtube_link_to_id(link):

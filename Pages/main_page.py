@@ -1,7 +1,7 @@
 import gradio as gr
-from Functions.video_player_functions import youtube_link_to_id, get_video_embed_by_id, get_video_link_by_pointer
-from Functions.caption_editor_functions import get_captions_by_video_id, save_dataframe
-from Resources.css import css
+from .Functions.video_player_functions import youtube_link_to_id, get_video_embed_by_id, get_video_link_by_pointer
+from .Functions.caption_editor_functions import get_captions_by_video_id, save_dataframe
+from .Resources.css import css
 
 next_video_pointer = 0
 user = ""

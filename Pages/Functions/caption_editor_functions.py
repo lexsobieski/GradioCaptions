@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-FILE_PATH = "../Resources/captions.jsonl"
+FILE_PATH = "Pages/Resources/captions.jsonl"
 
 
 def get_captions_by_video_id(video_id):
