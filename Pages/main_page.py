@@ -1,4 +1,5 @@
 import gradio as gr
+import pandas as pd
 from .Functions.video_player_functions import youtube_link_to_id, get_video_embed_by_id, get_video_link_by_pointer
 from .Functions.caption_editor_functions import get_captions_by_video_id, save_dataframe
 from .Resources.css import css
@@ -24,12 +25,17 @@ def get_next_components():
         next_video_link = get_video_link_by_pointer(0)
         next_video_pointer = 1
 
-    next_video_id = youtube_link_to_id(next_video_link)
+    try:
+        next_video_id = youtube_link_to_id(next_video_link)
 
-    next_video = get_video_embed_by_id(next_video_id)
-    next_captions = get_captions_by_video_id(next_video_id)
-
-    return next_video, next_captions, next_video_id
+        next_video = get_video_embed_by_id(next_video_id)
+        next_captions = get_captions_by_video_id(next_video_id)
+        return next_video, next_captions, next_video_id
+    except (ValueError, Exception) as e:
+        error_html = f"<div>Error loading video: {str(e)}</div>"
+        empty_captions = pd.DataFrame(columns=["Start", "Text", "End"])
+        return error_html, empty_captions, "error"
+    
 
 
 (start_video, start_captions, start_video_id) = get_next_components()

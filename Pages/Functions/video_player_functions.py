@@ -1,13 +1,14 @@
-import re
+import urllib
 from .db_connection import videos_ref
 
 
 def youtube_link_to_id(link):
-    video_id = re.findall("=(.*?)&", link)
-    if len(video_id) == 0:
-        video_id = re.findall("=(.*)", link)
-    return video_id[0]
-
+    try:
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(link)
+        return parse_qs(parsed.query)['v'][0]
+    except (KeyError, IndexError):
+        raise ValueError(f"Invalid YouTube URL: {link}")
 
 def get_video_embed_by_id(video_id):
     return f"""
