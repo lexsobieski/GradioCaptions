@@ -21,6 +21,7 @@ STRINGS = {
         "header_start": "Start",
         "header_text": "Text",
         "header_end": "End",
+        "header_aligned": "Aligned",
         
         # Edit form
         "edit_caption_title": "Edit Caption Entry",
@@ -58,7 +59,7 @@ STRINGS = {
         "error": "Error:",
         "all_videos_transcribed": "Save cancelled: All videos transcribed",
         "change_video_completion_status_success": "Video completion status successfully changed",
-        "show_incomplete_only_change": "List of accessible videos successfully changed"
+        "show_incomplete_only_change": "List of accessible videos successfully changed",
     },
     "uk": {
         # Header and login
@@ -77,6 +78,7 @@ STRINGS = {
         "header_start": "Початок",
         "header_text": "Текст",
         "header_end": "Кінець",
+        "header_aligned": "Вирівняно",
         
         # Edit form
         "edit_caption_title": "Редагувати субтитр",
@@ -114,7 +116,7 @@ STRINGS = {
         "error": "Помилка:",
         "all_videos_transcribed": "Відміна збереження: Усі відео розмічено",
         "change_video_completion_status_success": "Статус відео успішно змінено",
-        "show_incomplete_only_change": "Список доступних відео успішно змінено"
+        "show_incomplete_only_change": "Список доступних відео успішно змінено",
     }
 }
 

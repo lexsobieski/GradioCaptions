@@ -10,7 +10,7 @@ from Resources.localization import get_string
 next_video_pointer = 0
 user = "anonymous_user"
 n_videos = get_number_of_videos()
-placeholder_link = "https://www.youtube.com/watch?v=wTQjwG2-ePA"
+placeholder_link = "https://www.youtube.com/watch?v=d37lwXaSjs4"
 
 
 def get_username(profile: gr.OAuthProfile):
@@ -38,8 +38,16 @@ def on_row_select(df, evt: gr.SelectData):
     return gr.update(value=0.0), gr.update(value=""), gr.update(value=0.0), -1, get_string("save_entry_button")
 
 
+# ADC-IMPLEMENTS: <gc-feature-aligned-ui-01>
 def save_entry(df, start_time, text, end_time, selected_row_idx, video_id):
-    """Save or update a caption entry"""
+    """Save or update a caption entry with per-entry alignment tracking.
+
+    Works directly with the 4-column DataFrame (Start, Text, End, Aligned).
+    Sets aligned=True ONLY for the specific row being added or updated.
+    All other rows retain their existing Aligned values from the DataFrame.
+    The current video pointer is computed from global state and passed to
+    save_captions_to_db for auto-assignment.
+    """
     if user == "anonymous_user":
         return df, gr.Warning(get_string("please_sign_in"))
     if next_video_pointer == -1:
@@ -60,19 +68,24 @@ def save_entry(df, start_time, text, end_time, selected_row_idx, video_id):
             new_row = pd.DataFrame({
                 'Start': [start_time],
                 'Text': [text.strip()],
-                'End': [end_time]
+                'End': [end_time],
+                'Aligned': [True]  # New entry gets aligned=True
             })
             df_copy = pd.concat([df_copy, new_row], ignore_index=True)
-            # Sort by start time
             df_copy = df_copy.sort_values('Start').reset_index(drop=True)
         else:  # Updating existing entry
             if 0 <= selected_row_idx < len(df_copy):
-                df_copy.iloc[selected_row_idx] = [start_time, text.strip(), end_time]
-                # Sort by start time
+                df_copy.at[selected_row_idx, 'Start'] = start_time
+                df_copy.at[selected_row_idx, 'Text'] = text.strip()
+                df_copy.at[selected_row_idx, 'End'] = end_time
+                df_copy.at[selected_row_idx, 'Aligned'] = True  # Only this row gets aligned=True
                 df_copy = df_copy.sort_values('Start').reset_index(drop=True)
 
-        # Update in database
-        save_result = save_captions_to_db(df_copy, video_id, user)
+        # Compute the current video's pointer index from global state.
+        # This is the same formula used by change_completion_status.
+        current_pointer = (next_video_pointer + n_videos - 1) % n_videos
+        # save_captions_to_db receives the 4-col DF directly
+        save_result = save_captions_to_db(df_copy, video_id, user, current_pointer)
 
         return (
             df_copy,
@@ -131,13 +144,24 @@ def change_completion_status(completion_status):
         return gr.Error(f"{get_string('error')} {str(e)}")
 
 
+# ADC-IMPLEMENTS: <gc-feature-assignment-01>
 def get_next_components(show_incomplete_only):
+    """Get the next video and its captions as a 4-column DataFrame.
+
+    Returns:
+        captions: 4-column DataFrame [Start, Text, End, Aligned] for the UI
+        next_video_id: YouTube video ID string
+
+    Args:
+        show_incomplete_only: If True, skip videos marked as complete
+    """
     global next_video_pointer
+    next_video_link = placeholder_link
     if next_video_pointer != -1:
         next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only)
         next_video_pointer = (next_video_pointer + 1) % n_videos
 
-        for i in range(n_videos + 1):
+        for _ in range(n_videos + 1):
             if next_video_link is not None:
                 break
             next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only)
@@ -148,10 +172,10 @@ def get_next_components(show_incomplete_only):
 
     try:
         next_video_id = youtube_link_to_id(next_video_link)
-        next_captions = request_captions_by_video_id(next_video_id)
-        return next_captions, next_video_id
-    except (ValueError, Exception) as e:
-        empty_captions = pd.DataFrame(columns=["Start", "Text", "End"])
+        captions = request_captions_by_video_id(next_video_id)
+        return captions, next_video_id
+    except (ValueError, Exception):
+        empty_captions = pd.DataFrame(columns=["Start", "Text", "End", "Aligned"])
         return empty_captions, "error"
 
 
@@ -226,10 +250,10 @@ with gr.Blocks(css=css, head=yt_init_js, fill_width=True) as main_page:
             caption_editor = gr.DataFrame(
                 interactive=False,
                 elem_id="tbl",
-                datatype=["number", "str", "number"],
-                col_count=(3, "fixed"),
-                column_widths=["15%", "70%", "15%"],
-                headers=[get_string("header_start"), get_string("header_text"), get_string("header_end")],
+                datatype=["number", "str", "number", "bool"],
+                col_count=(4, "fixed"),
+                column_widths=["12%", "60%", "12%", "16%"],
+                headers=[get_string("header_start"), get_string("header_text"), get_string("header_end"), get_string("header_aligned")],
                 wrap=True
             )
 
@@ -255,7 +279,7 @@ with gr.Blocks(css=css, head=yt_init_js, fill_width=True) as main_page:
 
     next_video_button.click(
         fn=get_next_components,
-        inputs=show_incomplete_only_checkbox,
+        inputs=[show_incomplete_only_checkbox],
         outputs=[caption_editor, current_video_id]
     )
     next_video_button.click(

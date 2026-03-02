@@ -1,5 +1,5 @@
 ---
-title: CaptionEditor
+title: USL-Editor
 emoji: 🌖
 colorFrom: blue
 colorTo: red
