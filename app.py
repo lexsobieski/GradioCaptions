@@ -208,7 +208,7 @@ with gr.Blocks(css=css, head=yt_init_js, fill_width=True) as main_page:
         with gr.Column(scale=2, min_width=600):
             video_embed = gr.HTML(value=get_youtube_player_html())
 
-        with gr.Column(scale=1, min_width=300):
+        with gr.Column(scale=1, min_width=500):
             with gr.Group():
                 gr.Markdown(f"### {get_string('playback_controls_title')}")
                 with gr.Row():
