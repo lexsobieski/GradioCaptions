@@ -158,13 +158,13 @@ def get_next_components(show_incomplete_only):
     global next_video_pointer
     next_video_link = placeholder_link
     if next_video_pointer != -1:
-        next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only)
+        next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only, user)
         next_video_pointer = (next_video_pointer + 1) % n_videos
 
         for _ in range(n_videos + 1):
             if next_video_link is not None:
                 break
-            next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only)
+            next_video_link = get_video_link_by_pointer(next_video_pointer, show_incomplete_only, user)
             next_video_pointer = (next_video_pointer + 1) % n_videos
         if next_video_link is None:
             next_video_link = placeholder_link

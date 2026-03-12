@@ -28,12 +28,15 @@ def get_video_embed_by_id(video_id):
 
 
 # ADC-IMPLEMENTS: <gc-feature-assignment-01>
-def get_video_link_by_pointer(pointer, show_incomplete_only):
-    """Get video link with optional incomplete-only filtering.
+def get_video_link_by_pointer(pointer, show_incomplete_only, current_user=""):
+    """Get video link, skipping completed videos and videos assigned to other users.
 
     Args:
         pointer: Video index in the database
         show_incomplete_only: If True, skip videos marked as complete
+        current_user: Username of the current user. Videos assigned to
+            other users are skipped. Unassigned videos and videos assigned
+            to current_user are returned.
 
     Returns:
         Video URL string, or None if the video is filtered out
@@ -42,6 +45,9 @@ def get_video_link_by_pointer(pointer, show_incomplete_only):
     if video is None:
         return None
     if show_incomplete_only and video.get("complete", False):
+        return None
+    assigned_to = video.get("assigned_to")
+    if assigned_to and assigned_to != current_user:
         return None
     return video["url"]
 

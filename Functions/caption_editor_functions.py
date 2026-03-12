@@ -26,9 +26,10 @@ def save_captions_to_db(df, video_id, user, video_pointer):
         df_json = data.to_dict(orient="index")
         default_app.database().child("video_captions").child(video_id).child("captions").set(df_json)
 
-        # Auto-assign: write the current user to the video's assigned_to field
-        # video_pointer is passed directly by the caller -- no resolution needed
-        default_app.database().child("videos").child(str(video_pointer)).child("assigned_to").set(user)
+        # Auto-assign: only if the video isn't already assigned to someone
+        existing_assignment = default_app.database().child("videos").child(str(video_pointer)).child("assigned_to").get().val()
+        if not existing_assignment:
+            default_app.database().child("videos").child(str(video_pointer)).child("assigned_to").set(user)
         return get_string("save_successful")
     except Exception as e:
         return f"{get_string('save_failed')} {str(e)}"
